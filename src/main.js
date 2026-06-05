@@ -25,18 +25,25 @@ const moveButtons = document.querySelectorAll("[data-move]");
 const TILE_SIZE = 31;
 const ROWS = 21;
 const COLS = 21;
-const STORAGE_KEY = "survive-progress-v1";
-const KILLER_DETECTION_RANGE = 8;
-const PLAYER_MOVE_DURATION = 10;
-const KILLER_MOVE_DURATION = 10;
-const SURVIVOR_WALL_RATIO = 0.25;
+const STORAGE_KEY = "madman-madcop-progress-v1";
+const LEGACY_STORAGE_KEYS = ["survive-progress-v1"];
+const MADCOP_DETECTION_RANGE = 8;
+const MADMAN_MOVE_DURATION = 100;
+const MADCOP_MOVE_DURATION = 100;
+const MADMAN_WALL_RATIO = 0.25;
+const ASSET_BASE = import.meta.env.BASE_URL;
+
+document.documentElement.style.setProperty(
+  "--page-bg-image",
+  `url("${ASSET_BASE}pic_ob/madBG.jpg")`,
+);
 
 const images = {
-  player: loadImage("/pic_ob/madMan.png"),
-  killer: loadImage("/pic_ob/madCop.png"),
-  exit: loadImage("/pic_ob/madHole.png"),
-  trap: loadImage("/pic_ob/madTrap.png"),
-  floor: loadImage("/pic_ob/dirt.png"),
+  madman: loadImage(`${ASSET_BASE}pic_ob/madMan.png`),
+  madcop: loadImage(`${ASSET_BASE}pic_ob/madCop.png`),
+  exit: loadImage(`${ASSET_BASE}pic_ob/madHole.png`),
+  trap: loadImage(`${ASSET_BASE}pic_ob/madTrap.png`),
+  madmanWall: loadImage(`${ASSET_BASE}pic_ob/madBush.png`),
 };
 
 const MOVE_DIRECTIONS = {
@@ -47,38 +54,178 @@ const MOVE_DIRECTIONS = {
 };
 
 const LEVELS = [
-  { seed: 1101, tier: "ง่าย", walls: 0.08, traps: 5, minKillerDistance: 18, stars: [24, 36] },
-  { seed: 1203, tier: "ง่าย", walls: 0.09, traps: 6, minKillerDistance: 18, stars: [25, 38] },
-  { seed: 1307, tier: "ง่าย-กลาง", walls: 0.1, traps: 7, minKillerDistance: 18, stars: [27, 40] },
-  { seed: 1409, tier: "กลาง", walls: 0.11, traps: 8, minKillerDistance: 18, stars: [29, 43] },
-  { seed: 1511, tier: "กลาง", walls: 0.12, traps: 9, minKillerDistance: 18, stars: [30, 46] },
-  { seed: 2101, tier: "กลาง", walls: 0.13, traps: 10, minKillerDistance: 18, stars: [32, 48] },
-  { seed: 2203, tier: "กลาง-ยาก", walls: 0.14, traps: 11, minKillerDistance: 15, stars: [34, 51] },
-  { seed: 2307, tier: "กลาง-ยาก", walls: 0.15, traps: 12, minKillerDistance: 15, stars: [36, 54] },
-  { seed: 2409, tier: "ยาก", walls: 0.16, traps: 13, minKillerDistance: 15, stars: [39, 58] },
-  { seed: 2511, tier: "ยาก", walls: 0.17, traps: 14, minKillerDistance: 15, stars: [42, 62] },
-  { seed: 3101, tier: "ยาก", walls: 0.18, traps: 15, minKillerDistance: 15, stars: [45, 66] },
-  { seed: 3203, tier: "ยาก", walls: 0.19, traps: 16, minKillerDistance: 15, stars: [48, 70] },
-  { seed: 3307, tier: "ยากมาก", walls: 0.2, traps: 17, minKillerDistance: 11, stars: [52, 76] },
-  { seed: 3409, tier: "ยากมาก", walls: 0.21, traps: 18, minKillerDistance: 11, stars: [56, 82] },
-  { seed: 3511, tier: "ยากมาก", walls: 0.22, traps: 19, minKillerDistance: 11, stars: [60, 88] },
-  { seed: 3607, tier: "ยากมาก", walls: 0.23, traps: 20, minKillerDistance: 11, stars: [65, 95] },
-  { seed: 3713, tier: "ยากมาก", walls: 0.24, traps: 21, minKillerDistance: 11, stars: [70, 102] },
-  { seed: 4101, tier: "ยากมากๆ", walls: 0.25, traps: 22, minKillerDistance: 11, stars: [76, 112] },
-  { seed: 4203, tier: "ยากมากๆ", walls: 0.26, traps: 23, minKillerDistance: 11, stars: [84, 124] },
-  { seed: 4307, tier: "ยากมากๆ", walls: 0.27, traps: 24, minKillerDistance: 11, stars: [92, 138] },
+  {
+    seed: 1101,
+    tier: "ง่าย",
+    walls: 0.08,
+    traps: 5,
+    minMadcopDistance: 18,
+    stars: [24, 36],
+  },
+  {
+    seed: 1203,
+    tier: "ง่าย",
+    walls: 0.09,
+    traps: 6,
+    minMadcopDistance: 18,
+    stars: [25, 38],
+  },
+  {
+    seed: 1307,
+    tier: "ง่าย-กลาง",
+    walls: 0.1,
+    traps: 7,
+    minMadcopDistance: 18,
+    stars: [27, 40],
+  },
+  {
+    seed: 1409,
+    tier: "กลาง",
+    walls: 0.11,
+    traps: 8,
+    minMadcopDistance: 18,
+    stars: [29, 43],
+  },
+  {
+    seed: 1511,
+    tier: "กลาง",
+    walls: 0.12,
+    traps: 9,
+    minMadcopDistance: 18,
+    stars: [30, 46],
+  },
+  {
+    seed: 2101,
+    tier: "กลาง",
+    walls: 0.13,
+    traps: 10,
+    minMadcopDistance: 18,
+    stars: [32, 48],
+  },
+  {
+    seed: 2203,
+    tier: "กลาง-ยาก",
+    walls: 0.14,
+    traps: 11,
+    minMadcopDistance: 15,
+    stars: [34, 51],
+  },
+  {
+    seed: 2307,
+    tier: "กลาง-ยาก",
+    walls: 0.15,
+    traps: 12,
+    minMadcopDistance: 15,
+    stars: [36, 54],
+  },
+  {
+    seed: 2409,
+    tier: "ยาก",
+    walls: 0.16,
+    traps: 13,
+    minMadcopDistance: 15,
+    stars: [39, 58],
+  },
+  {
+    seed: 2511,
+    tier: "ยาก",
+    walls: 0.17,
+    traps: 14,
+    minMadcopDistance: 15,
+    stars: [42, 62],
+  },
+  {
+    seed: 3101,
+    tier: "ยาก",
+    walls: 0.18,
+    traps: 15,
+    minMadcopDistance: 15,
+    stars: [45, 66],
+  },
+  {
+    seed: 3203,
+    tier: "ยาก",
+    walls: 0.19,
+    traps: 16,
+    minMadcopDistance: 15,
+    stars: [48, 70],
+  },
+  {
+    seed: 3307,
+    tier: "ยากมาก",
+    walls: 0.2,
+    traps: 17,
+    minMadcopDistance: 11,
+    stars: [52, 76],
+  },
+  {
+    seed: 3409,
+    tier: "ยากมาก",
+    walls: 0.21,
+    traps: 18,
+    minMadcopDistance: 11,
+    stars: [56, 82],
+  },
+  {
+    seed: 3511,
+    tier: "ยากมาก",
+    walls: 0.22,
+    traps: 19,
+    minMadcopDistance: 11,
+    stars: [60, 88],
+  },
+  {
+    seed: 3607,
+    tier: "ยากมาก",
+    walls: 0.23,
+    traps: 20,
+    minMadcopDistance: 11,
+    stars: [65, 95],
+  },
+  {
+    seed: 3713,
+    tier: "ยากมาก",
+    walls: 0.24,
+    traps: 21,
+    minMadcopDistance: 11,
+    stars: [70, 102],
+  },
+  {
+    seed: 4101,
+    tier: "ยากมากๆ",
+    walls: 0.25,
+    traps: 22,
+    minMadcopDistance: 11,
+    stars: [76, 112],
+  },
+  {
+    seed: 4203,
+    tier: "ยากมากๆ",
+    walls: 0.26,
+    traps: 23,
+    minMadcopDistance: 11,
+    stars: [84, 124],
+  },
+  {
+    seed: 4307,
+    tier: "ยากมากๆ",
+    walls: 0.27,
+    traps: 24,
+    minMadcopDistance: 11,
+    stars: [92, 138],
+  },
 ];
 
 let progress = loadProgress();
 let currentLevel = 0;
 let map = [];
-let player;
-let killer;
-let previousKillerTile = null;
+let madman;
+let madcop;
+let previousMadcopTile = null;
 let exitTile;
-let killerTrail = [];
+let madcopTrail = [];
 let turnCount = 0;
-let playerFreeMoves = 0;
+let madmanFreeMoves = 0;
 let inputLocked = false;
 let gameState = "playing";
 let levelStartTime = performance.now();
@@ -94,7 +241,18 @@ function loadImage(src) {
 
 function loadProgress() {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) return JSON.parse(saved) || {};
+
+    for (const key of LEGACY_STORAGE_KEYS) {
+      const legacy = localStorage.getItem(key);
+      if (legacy) {
+        localStorage.setItem(STORAGE_KEY, legacy);
+        return JSON.parse(legacy) || {};
+      }
+    }
+
+    return {};
   } catch {
     return {};
   }
@@ -126,21 +284,36 @@ function buildLevel(index) {
     for (let y = 0; y < ROWS; y++) {
       for (let x = 0; x < COLS; x++) {
         const key = tileKey({ x, y });
-        if (safeKeys.has(key) || key === tileKey(start) || key === tileKey(exit)) continue;
+        if (
+          safeKeys.has(key) ||
+          key === tileKey(start) ||
+          key === tileKey(exit)
+        )
+          continue;
         if (rand() < config.walls) grid[y][x] = 1;
       }
     }
 
-    placeTraps(grid, config.traps, rand, new Set([...safeKeys, tileKey(start), tileKey(exit)]));
-    placeSurvivorWalls(grid, Math.round(countWalls(grid) * SURVIVOR_WALL_RATIO), rand, new Set([...safeKeys, tileKey(start), tileKey(exit)]));
-    const killerStart = pickKillerStart(grid, start, exit, rand, config);
+    placeTraps(
+      grid,
+      config.traps,
+      rand,
+      new Set([...safeKeys, tileKey(start), tileKey(exit)]),
+    );
+    placeMadmanWalls(
+      grid,
+      Math.round(countWalls(grid) * MADMAN_WALL_RATIO),
+      rand,
+      new Set([...safeKeys, tileKey(start), tileKey(exit)]),
+    );
+    const madcopStart = pickMadcopStart(grid, start, exit, rand, config);
 
     if (
-      killerStart &&
-      findPath(grid, start, exit, isPlayerWalkable).length > 0 &&
-      findPath(grid, killerStart, start, isKillerWalkable).length > 0
+      madcopStart &&
+      findPath(grid, start, exit, isMadmanWalkable).length > 0 &&
+      findPath(grid, madcopStart, start, isMadcopWalkable).length > 0
     ) {
-      return { grid, start, killerStart, exit };
+      return { grid, start, madcopStart, exit };
     }
   }
 
@@ -148,15 +321,23 @@ function buildLevel(index) {
   return {
     grid: fallback,
     start: { x: 2, y: 18 },
-    killerStart: { x: 18, y: 2 },
+    madcopStart: { x: 18, y: 2 },
     exit: { x: 18, y: 18 },
   };
 }
 
 function pickCornerTile(rand, isStart) {
   const choices = isStart
-    ? [{ x: 2, y: 18 }, { x: 3, y: 17 }, { x: 2, y: 15 }]
-    : [{ x: 18, y: 2 }, { x: 17, y: 3 }, { x: 18, y: 5 }];
+    ? [
+        { x: 2, y: 18 },
+        { x: 3, y: 17 },
+        { x: 2, y: 15 },
+      ]
+    : [
+        { x: 18, y: 2 },
+        { x: 17, y: 3 },
+        { x: 18, y: 5 },
+      ];
   return choices[Math.floor(rand() * choices.length)];
 }
 
@@ -176,7 +357,9 @@ function carvePath(grid, start, goal, rand) {
     path.push({ ...current });
 
     if (rand() < 0.28) {
-      const side = getNeighbors(grid, current).filter((tile) => tile.x !== goal.x || tile.y !== goal.y);
+      const side = getNeighbors(grid, current).filter(
+        (tile) => tile.x !== goal.x || tile.y !== goal.y,
+      );
       if (side.length) path.push(side[Math.floor(rand() * side.length)]);
     }
   }
@@ -201,7 +384,7 @@ function placeTraps(grid, amount, rand, blocked) {
   }
 }
 
-function placeSurvivorWalls(grid, amount, rand, blocked) {
+function placeMadmanWalls(grid, amount, rand, blocked) {
   let placed = 0;
   let guard = 0;
 
@@ -224,22 +407,36 @@ function touchesWall(grid, x, y) {
     { x, y: y + 1 },
     { x: x - 1, y },
     { x: x + 1, y },
-  ].some((tile) => tile.x >= 0 && tile.x < COLS && tile.y >= 0 && tile.y < ROWS && grid[tile.y][tile.x] === 1);
+  ].some(
+    (tile) =>
+      tile.x >= 0 &&
+      tile.x < COLS &&
+      tile.y >= 0 &&
+      tile.y < ROWS &&
+      grid[tile.y][tile.x] === 1,
+  );
 }
 
 function countWalls(grid) {
-  return grid.reduce((total, row) => total + row.filter((cell) => cell === 1).length, 0);
+  return grid.reduce(
+    (total, row) => total + row.filter((cell) => cell === 1).length,
+    0,
+  );
 }
 
-function pickKillerStart(grid, playerStart, exit, rand, config) {
-  const minDistance = config.minKillerDistance;
+function pickMadcopStart(grid, madmanStart, exit, rand, config) {
+  const minDistance = config.minMadcopDistance;
   const candidates = [];
 
   for (let y = 0; y < ROWS; y++) {
     for (let x = 0; x < COLS; x++) {
       const tile = { x, y };
-      const distance = distanceBetween(tile, playerStart);
-      if (grid[y][x] === 0 && distance >= minDistance && distanceBetween(tile, exit) > 5) {
+      const distance = distanceBetween(tile, madmanStart);
+      if (
+        grid[y][x] === 0 &&
+        distance >= minDistance &&
+        distanceBetween(tile, exit) > 5
+      ) {
         candidates.push(tile);
       }
     }
@@ -255,13 +452,13 @@ function startLevel(index) {
   const level = buildLevel(index);
   currentLevel = index;
   map = level.grid;
-  player = makeActor(level.start);
-  killer = makeActor(level.killerStart);
-  previousKillerTile = null;
+  madman = makeActor(level.start);
+  madcop = makeActor(level.madcopStart);
+  previousMadcopTile = null;
   exitTile = level.exit;
-  killerTrail = [];
+  madcopTrail = [];
   turnCount = 0;
-  playerFreeMoves = 0;
+  madmanFreeMoves = 0;
   inputLocked = false;
   gameState = "playing";
   finishedTime = 0;
@@ -270,7 +467,7 @@ function startLevel(index) {
   updateTimer();
   startTimer();
   renderLevels();
-  setStatus("หนีไปที่ทางออก ก่อน killer ไล่ทัน");
+  setStatus("หนีไปที่ทางออก ก่อน madcop ไล่ทัน");
 }
 
 function makeActor(tile) {
@@ -301,7 +498,9 @@ function updateTimer() {
 }
 
 function formatTime(seconds) {
-  const minutes = Math.floor(seconds / 60).toString().padStart(2, "0");
+  const minutes = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
   const rest = (seconds % 60).toFixed(1).padStart(4, "0");
   return `${minutes}:${rest}`;
 }
@@ -328,8 +527,8 @@ function draw() {
   drawBoard();
   drawTrail();
   drawExit();
-  drawActor(images.player, player, 39, 62);
-  drawActor(images.killer, killer, 40, 64);
+  drawActor(images.madman, madman, 39, 62);
+  drawActor(images.madcop, madcop, 40, 64);
   requestAnimationFrame(draw);
 }
 
@@ -346,29 +545,36 @@ function drawBoard() {
         ctx.fillStyle = "rgba(165, 31, 45, 0.12)";
         ctx.fillRect(px + 3, py + 3, TILE_SIZE - 6, TILE_SIZE - 6);
       } else {
-        if (images.floor.complete && images.floor.naturalWidth) {
-          ctx.drawImage(images.floor, px, py, TILE_SIZE, TILE_SIZE);
-        } else {
-          ctx.fillStyle = "#20201c";
-          ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-        }
-        ctx.fillStyle = (x + y) % 2 === 0 ? "rgba(51, 61, 54, 0.36)" : "rgba(22, 25, 24, 0.36)";
+        ctx.fillStyle = (x + y) % 2 === 0 ? "#c8bf9c" : "#ebddaf";
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+        // ctx.fillStyle = "rgba(195, 164, 164, 0.16)";
+        ctx.fillRect(px + 3, py + 3, TILE_SIZE - 6, TILE_SIZE - 6);
       }
 
       if (cell === 2) {
         ctx.fillStyle = "rgba(80, 0, 0, 0.18)";
         ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         if (images.trap.complete && images.trap.naturalWidth) {
-          ctx.drawImage(images.trap, px + 3, py + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+          ctx.drawImage(
+            images.trap,
+            px + 3,
+            py + 3,
+            TILE_SIZE - 6,
+            TILE_SIZE - 6,
+          );
         }
       }
 
       if (cell === 3) {
-        ctx.fillStyle = "rgba(180, 186, 164, 0.28)";
-        ctx.fillRect(px + 4, py + 8, TILE_SIZE - 8, TILE_SIZE - 16);
-        ctx.strokeStyle = "rgba(247, 242, 236, 0.32)";
-        ctx.strokeRect(px + 4.5, py + 8.5, TILE_SIZE - 8, TILE_SIZE - 16);
+        if (images.madmanWall.complete && images.madmanWall.naturalWidth) {
+          ctx.drawImage(
+            images.madmanWall,
+            px + 2,
+            py + 2,
+            TILE_SIZE - 4,
+            TILE_SIZE - 4,
+          );
+        }
       }
 
       ctx.strokeStyle = "rgba(255, 255, 255, 0.035)";
@@ -378,10 +584,15 @@ function drawBoard() {
 }
 
 function drawTrail() {
-  killerTrail.forEach((tile, index) => {
-    const alpha = (index + 1) / killerTrail.length;
+  madcopTrail.forEach((tile, index) => {
+    const alpha = (index + 1) / madcopTrail.length;
     ctx.fillStyle = `rgba(165, 31, 45, ${0.08 + alpha * 0.18})`;
-    ctx.fillRect(tile.x * TILE_SIZE + 5, tile.y * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10);
+    ctx.fillRect(
+      tile.x * TILE_SIZE + 5,
+      tile.y * TILE_SIZE + 5,
+      TILE_SIZE - 10,
+      TILE_SIZE - 10,
+    );
   });
 }
 
@@ -407,13 +618,13 @@ function drawActor(image, actor, width, height) {
 async function handleMove(dx, dy) {
   if (inputLocked || gameState !== "playing") return;
 
-  const next = { x: player.x + dx, y: player.y + dy };
-  if (!isPlayerWalkable(map, next.x, next.y)) return;
+  const next = { x: madman.x + dx, y: madman.y + dy };
+  if (!isMadmanWalkable(map, next.x, next.y)) return;
 
   inputLocked = true;
-  await animateActor(player, next, PLAYER_MOVE_DURATION);
-  player.x = next.x;
-  player.y = next.y;
+  await animateActor(madman, next, MADMAN_MOVE_DURATION);
+  madman.x = next.x;
+  madman.y = next.y;
 
   if (checkEndState()) {
     inputLocked = false;
@@ -421,48 +632,48 @@ async function handleMove(dx, dy) {
   }
 
   turnCount++;
-  const freeMovesAtTurnStart = playerFreeMoves;
-  const steppedOnTrap = isTrap(player.x, player.y);
+  const freeMovesAtTurnStart = madmanFreeMoves;
+  const steppedOnTrap = isTrap(madman.x, madman.y);
 
   if (steppedOnTrap) {
-    setStatus("เหยียบกับดัก killer ได้เดินฟรี 2 ก้าว");
-    await moveKiller(2);
+    setStatus("เหยียบกับดัก madcop ได้เดินฟรี 2 ก้าว");
+    await moveMadcop(2);
     if (checkEndState()) {
       inputLocked = false;
       return;
     }
   }
 
-  if (playerFreeMoves > 0 && freeMovesAtTurnStart > 0) {
-    playerFreeMoves--;
-    setStatus(`killer ติดกับดัก คุณเดินฟรีได้อีก ${playerFreeMoves} ก้าว`);
-  } else if (playerFreeMoves > 0) {
-    setStatus(`killer ติดกับดัก คุณเดินฟรีได้ ${playerFreeMoves} ก้าว`);
+  if (madmanFreeMoves > 0 && freeMovesAtTurnStart > 0) {
+    madmanFreeMoves--;
+    setStatus(`madcop ติดกับดัก คุณเดินฟรีได้อีก ${madmanFreeMoves} ก้าว`);
+  } else if (madmanFreeMoves > 0) {
+    setStatus(`madcop ติดกับดัก คุณเดินฟรีได้ ${madmanFreeMoves} ก้าว`);
   } else {
-    await moveKiller(2);
+    await moveMadcop(2);
   }
 
   checkEndState();
   inputLocked = false;
 }
 
-async function moveKiller(steps) {
+async function moveMadcop(steps) {
   if (gameState !== "playing") return;
 
   for (let step = 0; step < steps; step++) {
-    const next = getNextKillerTile();
+    const next = getNextMadcopTile();
     if (!next) return;
-    const current = { x: killer.x, y: killer.y };
-    await animateActor(killer, next, KILLER_MOVE_DURATION);
-    killer.x = next.x;
-    killer.y = next.y;
-    previousKillerTile = current;
-    killerTrail.push({ x: killer.x, y: killer.y });
-    if (killerTrail.length > 24) killerTrail.shift();
+    const current = { x: madcop.x, y: madcop.y };
+    await animateActor(madcop, next, MADCOP_MOVE_DURATION);
+    madcop.x = next.x;
+    madcop.y = next.y;
+    previousMadcopTile = current;
+    madcopTrail.push({ x: madcop.x, y: madcop.y });
+    if (madcopTrail.length > 24) madcopTrail.shift();
 
-    if (isTrap(killer.x, killer.y)) {
-      playerFreeMoves += 2;
-      setStatus(`killer เหยียบกับดัก คุณเดินฟรีได้ ${playerFreeMoves} ก้าว`);
+    if (isTrap(madcop.x, madcop.y)) {
+      madmanFreeMoves += 2;
+      setStatus(`madcop เหยียบกับดัก คุณเดินฟรีได้ ${madmanFreeMoves} ก้าว`);
       break;
     }
 
@@ -470,16 +681,16 @@ async function moveKiller(steps) {
   }
 }
 
-function getNextKillerTile() {
-  if (canKillerSeePlayer()) {
-    const path = findPath(map, killer, player, isKillerWalkable);
+function getNextMadcopTile() {
+  if (canMadcopSeeMadman()) {
+    const path = findPath(map, madcop, madman, isMadcopWalkable);
     return path.length > 1 ? path[1] : null;
   }
 
-  const options = getNeighbors(map, killer, isKillerWalkable);
+  const options = getNeighbors(map, madcop, isMadcopWalkable);
   const forwardOptions =
-    options.length > 1 && previousKillerTile
-      ? options.filter((tile) => !sameTile(tile, previousKillerTile))
+    options.length > 1 && previousMadcopTile
+      ? options.filter((tile) => !sameTile(tile, previousMadcopTile))
       : options;
 
   return forwardOptions.length
@@ -487,11 +698,36 @@ function getNextKillerTile() {
     : null;
 }
 
-function canKillerSeePlayer() {
+function canMadcopSeeMadman() {
+  return isMadmanInMadcopRadius() && hasLineOfSight(madcop, madman);
+}
+
+function isMadmanInMadcopRadius() {
   return (
-    Math.abs(killer.x - player.x) <= KILLER_DETECTION_RANGE &&
-    Math.abs(killer.y - player.y) <= KILLER_DETECTION_RANGE
+    Math.abs(madcop.x - madman.x) <= MADCOP_DETECTION_RANGE &&
+    Math.abs(madcop.y - madman.y) <= MADCOP_DETECTION_RANGE
   );
+}
+
+function hasLineOfSight(from, to) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const steps = Math.max(Math.abs(dx), Math.abs(dy));
+
+  if (steps === 0) return true;
+
+  for (let step = 1; step < steps; step++) {
+    const x = Math.round(from.x + (dx * step) / steps);
+    const y = Math.round(from.y + (dy * step) / steps);
+
+    if (blocksMadcopSight(map[y]?.[x])) return false;
+  }
+
+  return true;
+}
+
+function blocksMadcopSight(cell) {
+  return cell === 1 || cell === 3;
 }
 
 function animateActor(actor, next, duration) {
@@ -520,16 +756,16 @@ function animateActor(actor, next, duration) {
 }
 
 function checkEndState() {
-  if (player.x === exitTile.x && player.y === exitTile.y) {
+  if (madman.x === exitTile.x && madman.y === exitTile.y) {
     finishLevel();
     return true;
   }
 
-  if (player.x === killer.x && player.y === killer.y) {
+  if (madman.x === madcop.x && madman.y === madcop.y) {
     finishedTime = getElapsedSeconds();
     gameState = "lost";
     updateTimer();
-    setStatus("โดน killer จับได้ กดเริ่มใหม่เพื่อลองอีกครั้ง");
+    setStatus("โดน madcop จับได้ กดเริ่มใหม่เพื่อลองอีกครั้ง");
     showDeathResult();
     return true;
   }
@@ -548,7 +784,11 @@ function finishLevel() {
   if (!previous || finishedTime < previous.best) {
     progress[currentLevel] = { best: finishedTime, stars, score };
   } else if (stars > previous.stars) {
-    progress[currentLevel] = { ...previous, stars, score: Math.max(previous.score || 0, score) };
+    progress[currentLevel] = {
+      ...previous,
+      stars,
+      score: Math.max(previous.score || 0, score),
+    };
   } else if (score > (previous.score || 0)) {
     progress[currentLevel] = { ...previous, score };
   }
@@ -560,14 +800,18 @@ function finishLevel() {
   showResult(stars, score);
 }
 
-function findPath(grid, start, goal, canWalk = isKillerWalkable) {
+function findPath(grid, start, goal, canWalk = isMadcopWalkable) {
   const openSet = [{ x: start.x, y: start.y }];
   const cameFrom = new Map();
   const gScore = new Map([[tileKey(start), 0]]);
   const fScore = new Map([[tileKey(start), distanceBetween(start, goal)]]);
 
   while (openSet.length) {
-    openSet.sort((a, b) => (fScore.get(tileKey(a)) ?? Infinity) - (fScore.get(tileKey(b)) ?? Infinity));
+    openSet.sort(
+      (a, b) =>
+        (fScore.get(tileKey(a)) ?? Infinity) -
+        (fScore.get(tileKey(b)) ?? Infinity),
+    );
     const current = openSet.shift();
 
     if (current.x === goal.x && current.y === goal.y) {
@@ -584,7 +828,11 @@ function findPath(grid, start, goal, canWalk = isKillerWalkable) {
         gScore.set(neighborKey, tentative);
         fScore.set(neighborKey, tentative + distanceBetween(neighbor, goal));
 
-        if (!openSet.some((tile) => tile.x === neighbor.x && tile.y === neighbor.y)) {
+        if (
+          !openSet.some(
+            (tile) => tile.x === neighbor.x && tile.y === neighbor.y,
+          )
+        ) {
           openSet.push(neighbor);
         }
       }
@@ -605,7 +853,7 @@ function reconstructPath(cameFrom, current) {
   return path;
 }
 
-function getNeighbors(grid, tile, canWalk = isPlayerWalkable) {
+function getNeighbors(grid, tile, canWalk = isMadmanWalkable) {
   return [
     { x: tile.x, y: tile.y - 1 },
     { x: tile.x, y: tile.y + 1 },
@@ -614,12 +862,19 @@ function getNeighbors(grid, tile, canWalk = isPlayerWalkable) {
   ].filter((next) => canWalk(grid, next.x, next.y));
 }
 
-function isPlayerWalkable(grid, x, y) {
+function isMadmanWalkable(grid, x, y) {
   return x >= 0 && x < COLS && y >= 0 && y < ROWS && grid[y][x] !== 1;
 }
 
-function isKillerWalkable(grid, x, y) {
-  return x >= 0 && x < COLS && y >= 0 && y < ROWS && grid[y][x] !== 1 && grid[y][x] !== 3;
+function isMadcopWalkable(grid, x, y) {
+  return (
+    x >= 0 &&
+    x < COLS &&
+    y >= 0 &&
+    y < ROWS &&
+    grid[y][x] !== 1 &&
+    grid[y][x] !== 3
+  );
 }
 
 function isTrap(x, y) {

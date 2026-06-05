@@ -1,4 +1,4 @@
-# Survive
+# Mad Man
 
 Vite canvas game.
 
