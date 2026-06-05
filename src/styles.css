@@ -406,6 +406,38 @@ canvas {
   display: none;
 }
 
+.scary-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: none;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.48)),
+    var(--scary-image, none) center / cover no-repeat;
+}
+
+.scary-overlay.is-visible {
+  display: block;
+  animation: scaryFlash 2s ease forwards;
+}
+
+@keyframes scaryFlash {
+  0% {
+    opacity: 0;
+    filter: contrast(1.25) saturate(0.6);
+  }
+
+  8%,
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    filter: contrast(1.6) saturate(0.35);
+  }
+}
+
 @media (max-width: 860px) {
   .hud,
   .control-panel {

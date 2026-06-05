@@ -20,6 +20,7 @@ const resultTime = document.getElementById("resultTime");
 const resultNextText = document.getElementById("resultNextText");
 const nextLevelButton = document.getElementById("nextLevelButton");
 const replayLevelButton = document.getElementById("replayLevelButton");
+const scaryOverlay = document.getElementById("scaryOverlay");
 const moveButtons = document.querySelectorAll("[data-move]");
 
 const TILE_SIZE = 31;
@@ -28,14 +29,18 @@ const COLS = 21;
 const STORAGE_KEY = "madman-madcop-progress-v1";
 const LEGACY_STORAGE_KEYS = ["survive-progress-v1"];
 const MADCOP_DETECTION_RANGE = 8;
-const MADMAN_MOVE_DURATION = 100;
-const MADCOP_MOVE_DURATION = 100;
+const MADMAN_MOVE_DURATION = 10;
+const MADCOP_MOVE_DURATION = 10;
 const MADMAN_WALL_RATIO = 0.25;
 const ASSET_BASE = import.meta.env.BASE_URL;
 
 document.documentElement.style.setProperty(
   "--page-bg-image",
   `url("${ASSET_BASE}pic_ob/madBG.jpg")`,
+);
+document.documentElement.style.setProperty(
+  "--scary-image",
+  `url("${ASSET_BASE}pic_ob/scary.jpg")`,
 );
 
 const images = {
@@ -232,6 +237,15 @@ let levelStartTime = performance.now();
 let finishedTime = 0;
 let timerId = null;
 let autoNextTimeout = null;
+let scaryTimeout = null;
+let scaryAudioContext = null;
+let scaryGain = null;
+let scarySource = null;
+let scaryAudioUnlocked = false;
+
+const scaryAudio = new Audio(`${ASSET_BASE}sounds/scary.mp3`);
+scaryAudio.preload = "auto";
+scaryAudio.volume = 1;
 
 function loadImage(src) {
   const image = new Image();
@@ -448,6 +462,7 @@ function pickMadcopStart(grid, madmanStart, exit, rand, config) {
 
 function startLevel(index) {
   clearAutoNext();
+  hideScaryOverlay();
   closeResult();
   const level = buildLevel(index);
   currentLevel = index;
@@ -766,6 +781,7 @@ function checkEndState() {
     gameState = "lost";
     updateTimer();
     setStatus("โดน madcop จับได้ กดเริ่มใหม่เพื่อลองอีกครั้ง");
+    showScaryEffect();
     showDeathResult();
     return true;
   }
@@ -929,6 +945,7 @@ document.addEventListener("keydown", (event) => {
 
   if (!keys[event.key]) return;
   event.preventDefault();
+  unlockScaryAudio();
   handleMove(keys[event.key][0], keys[event.key][1]);
 });
 
@@ -937,6 +954,7 @@ moveButtons.forEach((button) => {
     event.preventDefault();
     const direction = MOVE_DIRECTIONS[button.dataset.move];
     if (!direction) return;
+    unlockScaryAudio();
     handleMove(direction[0], direction[1]);
   });
 });
@@ -1008,6 +1026,67 @@ function clearAutoNext() {
     clearTimeout(autoNextTimeout);
     autoNextTimeout = null;
   }
+}
+
+function showScaryEffect() {
+  playScarySound();
+  scaryOverlay.classList.add("is-visible");
+  scaryOverlay.setAttribute("aria-hidden", "false");
+
+  if (scaryTimeout) clearTimeout(scaryTimeout);
+  scaryTimeout = setTimeout(hideScaryOverlay, 2000);
+}
+
+function hideScaryOverlay() {
+  if (scaryTimeout) {
+    clearTimeout(scaryTimeout);
+    scaryTimeout = null;
+  }
+
+  scaryOverlay.classList.remove("is-visible");
+  scaryOverlay.setAttribute("aria-hidden", "true");
+}
+
+function playScarySound() {
+  try {
+    setupScaryAudioBoost();
+    scaryAudio.currentTime = 0;
+
+    if (scaryAudioContext?.state === "suspended") {
+      scaryAudioContext.resume();
+    }
+
+    scaryAudio.play().catch(() => {});
+  } catch {
+    scaryAudio.play().catch(() => {});
+  }
+}
+
+function setupScaryAudioBoost() {
+  if (scaryGain) return;
+
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+
+  scaryAudioContext = new AudioContext();
+  scarySource = scaryAudioContext.createMediaElementSource(scaryAudio);
+  scaryGain = scaryAudioContext.createGain();
+  scaryGain.gain.value = 2;
+  scarySource.connect(scaryGain);
+  scaryGain.connect(scaryAudioContext.destination);
+}
+
+function unlockScaryAudio() {
+  if (scaryAudioUnlocked) return;
+  scaryAudioUnlocked = true;
+  scaryAudio.load();
+
+  try {
+    setupScaryAudioBoost();
+    if (scaryAudioContext?.state === "suspended") {
+      scaryAudioContext.resume().catch(() => {});
+    }
+  } catch {}
 }
 
 nextLevelButton.addEventListener("click", () => {
