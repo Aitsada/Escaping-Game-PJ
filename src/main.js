@@ -25,6 +25,9 @@ const TILE_SIZE = 31;
 const ROWS = 21;
 const COLS = 21;
 const STORAGE_KEY = "survive-progress-v1";
+const KILLER_DETECTION_RANGE = 8;
+const PLAYER_MOVE_DURATION = 90;
+const KILLER_MOVE_DURATION = 80;
 
 const images = {
   player: loadImage("/pic_ob/DBgirl.png"),
@@ -62,6 +65,7 @@ let currentLevel = 0;
 let map = [];
 let player;
 let killer;
+let previousKillerTile = null;
 let exitTile;
 let killerTrail = [];
 let turnCount = 0;
@@ -213,6 +217,7 @@ function startLevel(index) {
   map = level.grid;
   player = makeActor(level.start);
   killer = makeActor(level.killerStart);
+  previousKillerTile = null;
   exitTile = level.exit;
   killerTrail = [];
   turnCount = 0;
@@ -359,7 +364,7 @@ async function handleMove(dx, dy) {
   if (!isWalkable(map, next.x, next.y)) return;
 
   inputLocked = true;
-  await animateActor(player, next);
+  await animateActor(player, next, PLAYER_MOVE_DURATION);
   player.x = next.x;
   player.y = next.y;
 
@@ -398,12 +403,13 @@ async function moveKiller(steps) {
   if (gameState !== "playing") return;
 
   for (let step = 0; step < steps; step++) {
-    const path = findPath(map, killer, player);
-    if (path.length <= 1) return;
-    const next = path[1];
-    await animateActor(killer, next);
+    const next = getNextKillerTile();
+    if (!next) return;
+    const current = { x: killer.x, y: killer.y };
+    await animateActor(killer, next, KILLER_MOVE_DURATION);
     killer.x = next.x;
     killer.y = next.y;
+    previousKillerTile = current;
     killerTrail.push({ x: killer.x, y: killer.y });
     if (killerTrail.length > 24) killerTrail.shift();
 
@@ -417,11 +423,34 @@ async function moveKiller(steps) {
   }
 }
 
-function animateActor(actor, next) {
+function getNextKillerTile() {
+  if (canKillerSeePlayer()) {
+    const path = findPath(map, killer, player);
+    return path.length > 1 ? path[1] : null;
+  }
+
+  const options = getNeighbors(map, killer);
+  const forwardOptions =
+    options.length > 1 && previousKillerTile
+      ? options.filter((tile) => !sameTile(tile, previousKillerTile))
+      : options;
+
+  return forwardOptions.length
+    ? forwardOptions[Math.floor(Math.random() * forwardOptions.length)]
+    : null;
+}
+
+function canKillerSeePlayer() {
+  return (
+    Math.abs(killer.x - player.x) <= KILLER_DETECTION_RANGE &&
+    Math.abs(killer.y - player.y) <= KILLER_DETECTION_RANGE
+  );
+}
+
+function animateActor(actor, next, duration) {
   const fromX = actor.renderX;
   const fromY = actor.renderY;
   const started = performance.now();
-  const duration = 150;
 
   return new Promise((resolve) => {
     function tick(now) {
@@ -550,6 +579,10 @@ function tileKey(tile) {
   return `${tile.x},${tile.y}`;
 }
 
+function sameTile(a, b) {
+  return a.x === b.x && a.y === b.y;
+}
+
 function distanceBetween(a, b) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
@@ -670,3 +703,5 @@ replayLevelButton.addEventListener("click", () => startLevel(currentLevel));
 
 startLevel(0);
 draw();
+document.body.classList.remove("app-loading");
+document.body.classList.add("app-ready");
