@@ -27,7 +27,7 @@ body {
   color: var(--text);
   background:
     linear-gradient(90deg, rgba(8, 9, 11, 0.94), rgba(8, 9, 11, 0.58)),
-    url("/pic_ob/DBbg2.jpg") center / cover fixed;
+    url("/pic_ob/madBG.jpg") center / cover fixed;
 }
 
 button {
@@ -180,6 +180,77 @@ canvas {
 
 .status-text {
   color: #f0d9d3;
+}
+
+.mobile-controls {
+  display: none;
+}
+
+.move-pad {
+  position: relative;
+  width: 188px;
+  height: 188px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04) 42%, rgba(10, 10, 12, 0.88) 43%),
+    rgba(18, 18, 20, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.45), 0 18px 48px rgba(0, 0, 0, 0.42);
+  touch-action: none;
+}
+
+.move-button {
+  position: absolute;
+  width: 66px;
+  height: 66px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(165, 31, 45, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.32);
+  color: var(--text);
+  font-size: 1.35rem;
+  line-height: 1;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.move-button:active {
+  background: var(--blood-bright);
+  box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.28);
+}
+
+.move-up {
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.move-left {
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+}
+
+.move-right {
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+}
+
+.move-down {
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.move-center {
+  position: absolute;
+  inset: 70px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.36);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .levels-overlay {
@@ -348,23 +419,97 @@ canvas {
 
 @media (max-width: 520px) {
   .app-shell {
-    width: min(100vw - 16px, 1180px);
-    padding: 8px 0;
+    width: min(100vw - 12px, 1180px);
+    min-height: 100svh;
+    padding: 6px 0 12px;
+    gap: 8px;
+  }
+
+  .hud {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .brand {
+    justify-content: space-between;
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  h1 {
+    font-size: 2rem;
   }
 
   .stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .stats div {
+    padding: 8px 7px;
+  }
+
+  .stats strong {
+    font-size: 0.92rem;
   }
 
   .actions {
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .game-area {
-    padding: 8px;
+    padding: 6px;
   }
 
   canvas {
-    width: calc(100vw - 32px);
+    width: min(calc(100vw - 24px), 430px);
+  }
+
+  .mobile-controls {
+    display: grid;
+    place-items: center;
+    padding: 4px 0 calc(8px + env(safe-area-inset-bottom));
+  }
+
+  .control-panel {
+    padding: 10px;
+  }
+
+  .control-panel div:first-child {
+    display: none;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 932px) {
+  .mobile-controls {
+    display: grid;
+    place-items: center;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 390px) and (max-width: 520px) and (min-height: 820px) {
+  .move-pad {
+    width: 204px;
+    height: 204px;
+  }
+
+  .move-button {
+    width: 72px;
+    height: 72px;
+  }
+
+  .move-center {
+    inset: 76px;
+  }
+}
+
+@media (min-width: 933px), (pointer: fine) and (min-width: 521px) {
+  .mobile-controls {
+    display: none;
   }
 }

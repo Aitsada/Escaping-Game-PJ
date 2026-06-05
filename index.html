@@ -7,8 +7,8 @@
       name="description"
       content="Survive: a killer chase puzzle game with timed levels and local stars."
     />
-    <title>Dead Bye</title>
-    <link rel="icon" type="image/png" href="/dist/pic_ob/DBbg2.jpg">
+    <title>Mad Man</title>
+    <link rel="icon" type="image/png" href="/dist/pic_ob/madMan.png">
     <style>
       html,
       body {
@@ -43,8 +43,8 @@
         <div class="brand">
           <span class="brand-mark" aria-hidden="true"></span>
           <div>
-            <p class="eyebrow">Killer Chase</p>
-            <h1>Survive</h1>
+            <p class="eyebrow">Catch me if you can!</p>
+            <h1>Mad Man</h1>
           </div>
         </div>
 
@@ -71,6 +71,16 @@
 
       <section class="game-area" aria-label="Survive game board">
         <canvas id="gameCanvas" width="651" height="651"></canvas>
+      </section>
+
+      <section class="mobile-controls" aria-label="Mobile movement controls">
+        <div class="move-pad" aria-label="Movement pad">
+          <button class="move-button move-up" type="button" data-move="up" aria-label="เดินขึ้น">▲</button>
+          <button class="move-button move-left" type="button" data-move="left" aria-label="เดินซ้าย">◀</button>
+          <div class="move-center" aria-hidden="true"></div>
+          <button class="move-button move-right" type="button" data-move="right" aria-label="เดินขวา">▶</button>
+          <button class="move-button move-down" type="button" data-move="down" aria-label="เดินลง">▼</button>
+        </div>
       </section>
 
       <section class="control-panel" aria-label="Controls">

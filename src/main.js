@@ -20,22 +20,30 @@ const resultTime = document.getElementById("resultTime");
 const resultNextText = document.getElementById("resultNextText");
 const nextLevelButton = document.getElementById("nextLevelButton");
 const replayLevelButton = document.getElementById("replayLevelButton");
+const moveButtons = document.querySelectorAll("[data-move]");
 
 const TILE_SIZE = 31;
 const ROWS = 21;
 const COLS = 21;
 const STORAGE_KEY = "survive-progress-v1";
 const KILLER_DETECTION_RANGE = 8;
-const PLAYER_MOVE_DURATION = 90;
-const KILLER_MOVE_DURATION = 80;
+const PLAYER_MOVE_DURATION = 10;
+const KILLER_MOVE_DURATION = 10;
 const SURVIVOR_WALL_RATIO = 0.25;
 
 const images = {
-  player: loadImage("/pic_ob/DBgirl.png"),
-  killer: loadImage("/pic_ob/DBknife.png"),
-  exit: loadImage("/pic_ob/DBhole.png"),
-  trap: loadImage("/pic_ob/DBtrap.png"),
+  player: loadImage("/pic_ob/madMan.png"),
+  killer: loadImage("/pic_ob/madCop.png"),
+  exit: loadImage("/pic_ob/madHole.png"),
+  trap: loadImage("/pic_ob/madTrap.png"),
   floor: loadImage("/pic_ob/dirt.png"),
+};
+
+const MOVE_DIRECTIONS = {
+  up: [0, -1],
+  down: [0, 1],
+  left: [-1, 0],
+  right: [1, 0],
 };
 
 const LEVELS = [
@@ -654,19 +662,28 @@ function renderLevels() {
 
 document.addEventListener("keydown", (event) => {
   const keys = {
-    w: [0, -1],
-    ArrowUp: [0, -1],
-    s: [0, 1],
-    ArrowDown: [0, 1],
-    a: [-1, 0],
-    ArrowLeft: [-1, 0],
-    d: [1, 0],
-    ArrowRight: [1, 0],
+    w: MOVE_DIRECTIONS.up,
+    ArrowUp: MOVE_DIRECTIONS.up,
+    s: MOVE_DIRECTIONS.down,
+    ArrowDown: MOVE_DIRECTIONS.down,
+    a: MOVE_DIRECTIONS.left,
+    ArrowLeft: MOVE_DIRECTIONS.left,
+    d: MOVE_DIRECTIONS.right,
+    ArrowRight: MOVE_DIRECTIONS.right,
   };
 
   if (!keys[event.key]) return;
   event.preventDefault();
   handleMove(keys[event.key][0], keys[event.key][1]);
+});
+
+moveButtons.forEach((button) => {
+  button.addEventListener("pointerdown", (event) => {
+    event.preventDefault();
+    const direction = MOVE_DIRECTIONS[button.dataset.move];
+    if (!direction) return;
+    handleMove(direction[0], direction[1]);
+  });
 });
 
 restartButton.addEventListener("click", () => startLevel(currentLevel));
