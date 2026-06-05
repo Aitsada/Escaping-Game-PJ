@@ -28,6 +28,7 @@ const STORAGE_KEY = "survive-progress-v1";
 const KILLER_DETECTION_RANGE = 8;
 const PLAYER_MOVE_DURATION = 90;
 const KILLER_MOVE_DURATION = 80;
+const SURVIVOR_WALL_RATIO = 0.25;
 
 const images = {
   player: loadImage("/pic_ob/DBgirl.png"),
@@ -123,12 +124,13 @@ function buildLevel(index) {
     }
 
     placeTraps(grid, config.traps, rand, new Set([...safeKeys, tileKey(start), tileKey(exit)]));
+    placeSurvivorWalls(grid, Math.round(countWalls(grid) * SURVIVOR_WALL_RATIO), rand, new Set([...safeKeys, tileKey(start), tileKey(exit)]));
     const killerStart = pickKillerStart(grid, start, exit, rand, config);
 
     if (
       killerStart &&
-      findPath(grid, start, exit).length > 0 &&
-      findPath(grid, killerStart, start).length > 0
+      findPath(grid, start, exit, isPlayerWalkable).length > 0 &&
+      findPath(grid, killerStart, start, isKillerWalkable).length > 0
     ) {
       return { grid, start, killerStart, exit };
     }
@@ -189,6 +191,36 @@ function placeTraps(grid, amount, rand, blocked) {
       placed++;
     }
   }
+}
+
+function placeSurvivorWalls(grid, amount, rand, blocked) {
+  let placed = 0;
+  let guard = 0;
+
+  while (placed < amount && guard < 4000) {
+    guard++;
+    const x = Math.floor(rand() * COLS);
+    const y = Math.floor(rand() * ROWS);
+    const key = tileKey({ x, y });
+
+    if (grid[y][x] === 0 && !blocked.has(key) && touchesWall(grid, x, y)) {
+      grid[y][x] = 3;
+      placed++;
+    }
+  }
+}
+
+function touchesWall(grid, x, y) {
+  return [
+    { x, y: y - 1 },
+    { x, y: y + 1 },
+    { x: x - 1, y },
+    { x: x + 1, y },
+  ].some((tile) => tile.x >= 0 && tile.x < COLS && tile.y >= 0 && tile.y < ROWS && grid[tile.y][tile.x] === 1);
+}
+
+function countWalls(grid) {
+  return grid.reduce((total, row) => total + row.filter((cell) => cell === 1).length, 0);
 }
 
 function pickKillerStart(grid, playerStart, exit, rand, config) {
@@ -324,6 +356,13 @@ function drawBoard() {
         }
       }
 
+      if (cell === 3) {
+        ctx.fillStyle = "rgba(180, 186, 164, 0.28)";
+        ctx.fillRect(px + 4, py + 8, TILE_SIZE - 8, TILE_SIZE - 16);
+        ctx.strokeStyle = "rgba(247, 242, 236, 0.32)";
+        ctx.strokeRect(px + 4.5, py + 8.5, TILE_SIZE - 8, TILE_SIZE - 16);
+      }
+
       ctx.strokeStyle = "rgba(255, 255, 255, 0.035)";
       ctx.strokeRect(px + 0.5, py + 0.5, TILE_SIZE, TILE_SIZE);
     }
@@ -361,7 +400,7 @@ async function handleMove(dx, dy) {
   if (inputLocked || gameState !== "playing") return;
 
   const next = { x: player.x + dx, y: player.y + dy };
-  if (!isWalkable(map, next.x, next.y)) return;
+  if (!isPlayerWalkable(map, next.x, next.y)) return;
 
   inputLocked = true;
   await animateActor(player, next, PLAYER_MOVE_DURATION);
@@ -425,11 +464,11 @@ async function moveKiller(steps) {
 
 function getNextKillerTile() {
   if (canKillerSeePlayer()) {
-    const path = findPath(map, killer, player);
+    const path = findPath(map, killer, player, isKillerWalkable);
     return path.length > 1 ? path[1] : null;
   }
 
-  const options = getNeighbors(map, killer);
+  const options = getNeighbors(map, killer, isKillerWalkable);
   const forwardOptions =
     options.length > 1 && previousKillerTile
       ? options.filter((tile) => !sameTile(tile, previousKillerTile))
@@ -513,7 +552,7 @@ function finishLevel() {
   showResult(stars, score);
 }
 
-function findPath(grid, start, goal) {
+function findPath(grid, start, goal, canWalk = isKillerWalkable) {
   const openSet = [{ x: start.x, y: start.y }];
   const cameFrom = new Map();
   const gScore = new Map([[tileKey(start), 0]]);
@@ -527,7 +566,7 @@ function findPath(grid, start, goal) {
       return reconstructPath(cameFrom, current);
     }
 
-    for (const neighbor of getNeighbors(grid, current)) {
+    for (const neighbor of getNeighbors(grid, current, canWalk)) {
       const currentKey = tileKey(current);
       const neighborKey = tileKey(neighbor);
       const tentative = (gScore.get(currentKey) ?? Infinity) + 1;
@@ -558,17 +597,21 @@ function reconstructPath(cameFrom, current) {
   return path;
 }
 
-function getNeighbors(grid, tile) {
+function getNeighbors(grid, tile, canWalk = isPlayerWalkable) {
   return [
     { x: tile.x, y: tile.y - 1 },
     { x: tile.x, y: tile.y + 1 },
     { x: tile.x - 1, y: tile.y },
     { x: tile.x + 1, y: tile.y },
-  ].filter((next) => isWalkable(grid, next.x, next.y));
+  ].filter((next) => canWalk(grid, next.x, next.y));
 }
 
-function isWalkable(grid, x, y) {
+function isPlayerWalkable(grid, x, y) {
   return x >= 0 && x < COLS && y >= 0 && y < ROWS && grid[y][x] !== 1;
+}
+
+function isKillerWalkable(grid, x, y) {
+  return x >= 0 && x < COLS && y >= 0 && y < ROWS && grid[y][x] !== 1 && grid[y][x] !== 3;
 }
 
 function isTrap(x, y) {
