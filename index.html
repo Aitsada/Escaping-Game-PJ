@@ -69,6 +69,29 @@
       </section>
     </div>
 
+    <div id="resultDialog" class="levels-overlay" aria-hidden="true">
+      <section class="result-dialog" aria-labelledby="resultTitle" role="dialog" aria-modal="true">
+        <p id="resultEyebrow" class="eyebrow">Level Clear</p>
+        <h2 id="resultTitle">รอดแล้ว</h2>
+        <div id="resultStars" class="result-stars">★★★</div>
+        <div class="result-stats">
+          <div>
+            <span>คะแนน</span>
+            <strong id="resultScore">0</strong>
+          </div>
+          <div>
+            <span>เวลา</span>
+            <strong id="resultTime">00:00.0</strong>
+          </div>
+        </div>
+        <p id="resultNextText" class="result-next">กำลังไปด่านถัดไป...</p>
+        <div class="result-actions">
+          <button id="nextLevelButton" type="button">ด่านถัดไป</button>
+          <button id="replayLevelButton" type="button">เล่นซ้ำ</button>
+        </div>
+      </section>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

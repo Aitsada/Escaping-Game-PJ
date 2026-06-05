@@ -262,6 +262,78 @@ canvas {
   font-size: 0.86rem;
 }
 
+.result-dialog {
+  width: min(440px, calc(100vw - 28px));
+  padding: 24px;
+  text-align: center;
+  color: var(--text);
+  background: var(--panel-solid);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.7);
+}
+
+.result-stars {
+  margin: 18px 0;
+  color: var(--gold);
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.result-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.result-stats div {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--line);
+}
+
+.result-stats span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.result-stats strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 1.35rem;
+}
+
+.result-next {
+  min-height: 24px;
+  margin: 12px 0 18px;
+  color: #f0d9d3;
+}
+
+.result-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.result-actions button {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 14px;
+  background: #24242a;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.result-actions button:first-child {
+  background: var(--blood);
+}
+
+.result-actions button.is-hidden {
+  display: none;
+}
+
 @media (max-width: 860px) {
   .hud,
   .control-panel {

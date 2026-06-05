@@ -11,6 +11,15 @@ const levelsButton = document.getElementById("levelsButton");
 const levelsDialog = document.getElementById("levelsDialog");
 const closeLevelsButton = document.getElementById("closeLevelsButton");
 const levelsGrid = document.getElementById("levelsGrid");
+const resultDialog = document.getElementById("resultDialog");
+const resultEyebrow = document.getElementById("resultEyebrow");
+const resultTitle = document.getElementById("resultTitle");
+const resultStars = document.getElementById("resultStars");
+const resultScore = document.getElementById("resultScore");
+const resultTime = document.getElementById("resultTime");
+const resultNextText = document.getElementById("resultNextText");
+const nextLevelButton = document.getElementById("nextLevelButton");
+const replayLevelButton = document.getElementById("replayLevelButton");
 
 const TILE_SIZE = 31;
 const ROWS = 21;
@@ -26,26 +35,26 @@ const images = {
 };
 
 const LEVELS = [
-  { seed: 1101, tier: "ง่าย", walls: 0.08, traps: 5, killerEvery: 3, stars: [24, 36] },
-  { seed: 1203, tier: "ง่าย", walls: 0.09, traps: 6, killerEvery: 3, stars: [25, 38] },
-  { seed: 1307, tier: "ง่าย-กลาง", walls: 0.1, traps: 7, killerEvery: 3, stars: [27, 40] },
-  { seed: 1409, tier: "กลาง", walls: 0.11, traps: 8, killerEvery: 3, stars: [29, 43] },
-  { seed: 1511, tier: "กลาง", walls: 0.12, traps: 9, killerEvery: 3, stars: [30, 46] },
-  { seed: 2101, tier: "กลาง", walls: 0.13, traps: 10, killerEvery: 3, stars: [32, 48] },
-  { seed: 2203, tier: "กลาง-ยาก", walls: 0.14, traps: 11, killerEvery: 2, stars: [34, 51] },
-  { seed: 2307, tier: "กลาง-ยาก", walls: 0.15, traps: 12, killerEvery: 2, stars: [36, 54] },
-  { seed: 2409, tier: "ยาก", walls: 0.16, traps: 13, killerEvery: 2, stars: [39, 58] },
-  { seed: 2511, tier: "ยาก", walls: 0.17, traps: 14, killerEvery: 2, stars: [42, 62] },
-  { seed: 3101, tier: "ยาก", walls: 0.18, traps: 15, killerEvery: 2, stars: [45, 66] },
-  { seed: 3203, tier: "ยาก", walls: 0.19, traps: 16, killerEvery: 2, stars: [48, 70] },
-  { seed: 3307, tier: "ยากมาก", walls: 0.2, traps: 17, killerEvery: 1, stars: [52, 76] },
-  { seed: 3409, tier: "ยากมาก", walls: 0.21, traps: 18, killerEvery: 1, stars: [56, 82] },
-  { seed: 3511, tier: "ยากมาก", walls: 0.22, traps: 19, killerEvery: 1, stars: [60, 88] },
-  { seed: 3607, tier: "ยากมาก", walls: 0.23, traps: 20, killerEvery: 1, stars: [65, 95] },
-  { seed: 3713, tier: "ยากมาก", walls: 0.24, traps: 21, killerEvery: 1, stars: [70, 102] },
-  { seed: 4101, tier: "ยากมากๆ", walls: 0.25, traps: 22, killerEvery: 1, stars: [76, 112] },
-  { seed: 4203, tier: "ยากมากๆ", walls: 0.26, traps: 23, killerEvery: 1, stars: [84, 124] },
-  { seed: 4307, tier: "ยากมากๆ", walls: 0.27, traps: 24, killerEvery: 1, stars: [92, 138] },
+  { seed: 1101, tier: "ง่าย", walls: 0.08, traps: 5, minKillerDistance: 18, stars: [24, 36] },
+  { seed: 1203, tier: "ง่าย", walls: 0.09, traps: 6, minKillerDistance: 18, stars: [25, 38] },
+  { seed: 1307, tier: "ง่าย-กลาง", walls: 0.1, traps: 7, minKillerDistance: 18, stars: [27, 40] },
+  { seed: 1409, tier: "กลาง", walls: 0.11, traps: 8, minKillerDistance: 18, stars: [29, 43] },
+  { seed: 1511, tier: "กลาง", walls: 0.12, traps: 9, minKillerDistance: 18, stars: [30, 46] },
+  { seed: 2101, tier: "กลาง", walls: 0.13, traps: 10, minKillerDistance: 18, stars: [32, 48] },
+  { seed: 2203, tier: "กลาง-ยาก", walls: 0.14, traps: 11, minKillerDistance: 15, stars: [34, 51] },
+  { seed: 2307, tier: "กลาง-ยาก", walls: 0.15, traps: 12, minKillerDistance: 15, stars: [36, 54] },
+  { seed: 2409, tier: "ยาก", walls: 0.16, traps: 13, minKillerDistance: 15, stars: [39, 58] },
+  { seed: 2511, tier: "ยาก", walls: 0.17, traps: 14, minKillerDistance: 15, stars: [42, 62] },
+  { seed: 3101, tier: "ยาก", walls: 0.18, traps: 15, minKillerDistance: 15, stars: [45, 66] },
+  { seed: 3203, tier: "ยาก", walls: 0.19, traps: 16, minKillerDistance: 15, stars: [48, 70] },
+  { seed: 3307, tier: "ยากมาก", walls: 0.2, traps: 17, minKillerDistance: 11, stars: [52, 76] },
+  { seed: 3409, tier: "ยากมาก", walls: 0.21, traps: 18, minKillerDistance: 11, stars: [56, 82] },
+  { seed: 3511, tier: "ยากมาก", walls: 0.22, traps: 19, minKillerDistance: 11, stars: [60, 88] },
+  { seed: 3607, tier: "ยากมาก", walls: 0.23, traps: 20, minKillerDistance: 11, stars: [65, 95] },
+  { seed: 3713, tier: "ยากมาก", walls: 0.24, traps: 21, minKillerDistance: 11, stars: [70, 102] },
+  { seed: 4101, tier: "ยากมากๆ", walls: 0.25, traps: 22, minKillerDistance: 11, stars: [76, 112] },
+  { seed: 4203, tier: "ยากมากๆ", walls: 0.26, traps: 23, minKillerDistance: 11, stars: [84, 124] },
+  { seed: 4307, tier: "ยากมากๆ", walls: 0.27, traps: 24, minKillerDistance: 11, stars: [92, 138] },
 ];
 
 let progress = loadProgress();
@@ -56,12 +65,13 @@ let killer;
 let exitTile;
 let killerTrail = [];
 let turnCount = 0;
-let killerPaused = false;
+let playerFreeMoves = 0;
 let inputLocked = false;
 let gameState = "playing";
 let levelStartTime = performance.now();
 let finishedTime = 0;
 let timerId = null;
+let autoNextTimeout = null;
 
 function loadImage(src) {
   const image = new Image();
@@ -178,7 +188,7 @@ function placeTraps(grid, amount, rand, blocked) {
 }
 
 function pickKillerStart(grid, playerStart, exit, rand, config) {
-  const minDistance = config.killerEvery === 3 ? 18 : config.killerEvery === 2 ? 15 : 11;
+  const minDistance = config.minKillerDistance;
   const candidates = [];
 
   for (let y = 0; y < ROWS; y++) {
@@ -196,6 +206,8 @@ function pickKillerStart(grid, playerStart, exit, rand, config) {
 }
 
 function startLevel(index) {
+  clearAutoNext();
+  closeResult();
   const level = buildLevel(index);
   currentLevel = index;
   map = level.grid;
@@ -204,7 +216,7 @@ function startLevel(index) {
   exitTile = level.exit;
   killerTrail = [];
   turnCount = 0;
-  killerPaused = false;
+  playerFreeMoves = 0;
   inputLocked = false;
   gameState = "playing";
   finishedTime = 0;
@@ -258,6 +270,12 @@ function starsForTime(levelIndex, seconds) {
 
 function starsText(count) {
   return "★".repeat(count) + "☆".repeat(3 - count);
+}
+
+function scoreForTime(levelIndex, seconds, stars) {
+  const [, twoStar] = LEVELS[levelIndex].stars;
+  const speedBonus = Math.max(0, Math.round((twoStar - seconds) * 25));
+  return stars * 1000 + speedBonus;
 }
 
 function draw() {
@@ -351,29 +369,33 @@ async function handleMove(dx, dy) {
   }
 
   turnCount++;
-  if (isTrap(player.x, player.y)) {
-    setStatus("เหยียบกับดัก killer ได้จังหวะขยับเพิ่ม");
-    await moveKiller(true);
+  const freeMovesAtTurnStart = playerFreeMoves;
+  const steppedOnTrap = isTrap(player.x, player.y);
+
+  if (steppedOnTrap) {
+    setStatus("เหยียบกับดัก killer ได้เดินฟรี 2 ก้าว");
+    await moveKiller(2);
+    if (checkEndState()) {
+      inputLocked = false;
+      return;
+    }
   }
 
-  if (turnCount % LEVELS[currentLevel].killerEvery === 0) {
-    await moveKiller(false);
+  if (playerFreeMoves > 0 && freeMovesAtTurnStart > 0) {
+    playerFreeMoves--;
+    setStatus(`killer ติดกับดัก คุณเดินฟรีได้อีก ${playerFreeMoves} ก้าว`);
+  } else if (playerFreeMoves > 0) {
+    setStatus(`killer ติดกับดัก คุณเดินฟรีได้ ${playerFreeMoves} ก้าว`);
+  } else {
+    await moveKiller(2);
   }
 
   checkEndState();
   inputLocked = false;
 }
 
-async function moveKiller(isTrapBonus) {
+async function moveKiller(steps) {
   if (gameState !== "playing") return;
-
-  if (killerPaused) {
-    killerPaused = false;
-    setStatus("killer ติดกับดักและเสียจังหวะ");
-    return;
-  }
-
-  const steps = 1;
 
   for (let step = 0; step < steps; step++) {
     const path = findPath(map, killer, player);
@@ -386,7 +408,8 @@ async function moveKiller(isTrapBonus) {
     if (killerTrail.length > 24) killerTrail.shift();
 
     if (isTrap(killer.x, killer.y)) {
-      killerPaused = true;
+      playerFreeMoves += 2;
+      setStatus(`killer เหยียบกับดัก คุณเดินฟรีได้ ${playerFreeMoves} ก้าว`);
       break;
     }
 
@@ -431,6 +454,7 @@ function checkEndState() {
     gameState = "lost";
     updateTimer();
     setStatus("โดน killer จับได้ กดเริ่มใหม่เพื่อลองอีกครั้ง");
+    showDeathResult();
     return true;
   }
 
@@ -442,18 +466,22 @@ function finishLevel() {
   gameState = "won";
   updateTimer();
   const stars = starsForTime(currentLevel, finishedTime);
+  const score = scoreForTime(currentLevel, finishedTime, stars);
   const previous = progress[currentLevel];
 
   if (!previous || finishedTime < previous.best) {
-    progress[currentLevel] = { best: finishedTime, stars };
+    progress[currentLevel] = { best: finishedTime, stars, score };
   } else if (stars > previous.stars) {
-    progress[currentLevel] = { ...previous, stars };
+    progress[currentLevel] = { ...previous, stars, score: Math.max(previous.score || 0, score) };
+  } else if (score > (previous.score || 0)) {
+    progress[currentLevel] = { ...previous, score };
   }
 
   saveProgress();
   updateHud();
   renderLevels();
-  setStatus(`รอดแล้ว ได้ ${starsText(stars)} ในเวลา ${formatTime(finishedTime)}`);
+  setStatus(`รอดแล้ว ได้ ${starsText(stars)} คะแนน ${score}`);
+  showResult(stars, score);
 }
 
 function findPath(grid, start, goal) {
@@ -584,6 +612,61 @@ function closeLevels() {
   levelsDialog.classList.remove("is-open");
   levelsDialog.setAttribute("aria-hidden", "true");
 }
+
+function showResult(stars, score) {
+  resultEyebrow.textContent = "Level Clear";
+  resultTitle.textContent = "รอดแล้ว";
+  resultStars.textContent = starsText(stars);
+  resultScore.textContent = score.toLocaleString("th-TH");
+  resultTime.textContent = formatTime(finishedTime);
+  nextLevelButton.classList.remove("is-hidden");
+
+  if (currentLevel < LEVELS.length - 1) {
+    resultNextText.textContent = "กำลังไปด่านถัดไป...";
+    nextLevelButton.disabled = false;
+    autoNextTimeout = setTimeout(() => {
+      startLevel(currentLevel + 1);
+    }, 2500);
+  } else {
+    resultNextText.textContent = "ผ่านครบทุกด่านแล้ว";
+    nextLevelButton.disabled = true;
+  }
+
+  resultDialog.classList.add("is-open");
+  resultDialog.setAttribute("aria-hidden", "false");
+}
+
+function showDeathResult() {
+  clearAutoNext();
+  resultEyebrow.textContent = "Game Over";
+  resultTitle.textContent = "ตาย";
+  resultStars.textContent = "☆☆☆";
+  resultScore.textContent = "0";
+  resultTime.textContent = formatTime(finishedTime);
+  resultNextText.textContent = "กดเริ่มใหม่เพื่อลองด่านนี้อีกครั้ง";
+  nextLevelButton.disabled = true;
+  nextLevelButton.classList.add("is-hidden");
+  resultDialog.classList.add("is-open");
+  resultDialog.setAttribute("aria-hidden", "false");
+}
+
+function closeResult() {
+  resultDialog.classList.remove("is-open");
+  resultDialog.setAttribute("aria-hidden", "true");
+}
+
+function clearAutoNext() {
+  if (autoNextTimeout) {
+    clearTimeout(autoNextTimeout);
+    autoNextTimeout = null;
+  }
+}
+
+nextLevelButton.addEventListener("click", () => {
+  if (currentLevel >= LEVELS.length - 1) return;
+  startLevel(currentLevel + 1);
+});
+replayLevelButton.addEventListener("click", () => startLevel(currentLevel));
 
 startLevel(0);
 draw();
