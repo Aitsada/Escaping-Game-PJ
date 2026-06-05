@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Survive: a killer chase puzzle game with timed levels and local stars."
+    />
+    <title>Mad Man</title>
+    <link rel="icon" type="image/png" href="/Escaping-Game-PJ/pic_ob/madMan.png">
+    <style>
+      html,
+      body {
+        min-height: 100%;
+        margin: 0;
+        background: #e9f7ff;
+        color: #102033;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        background-color: #e9f7ff;
+      }
+
+      body.app-loading .app-shell,
+      body.app-loading .levels-overlay {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      body.app-ready .app-shell,
+      body.app-ready .levels-overlay {
+        opacity: 1;
+        visibility: visible;
+      }
+    </style>
+    <script type="module" crossorigin src="/Escaping-Game-PJ/assets/index-D-dUVf8k.js"></script>
+    <link rel="stylesheet" crossorigin href="/Escaping-Game-PJ/assets/index-Cd2wsEXa.css">
+  </head>
+  <body class="app-loading">
+    <main class="app-shell">
+      <section class="hud" aria-label="Game status">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <div>
+            <p class="eyebrow">Catch me if you can!</p>
+            <h1>Mad Man</h1>
+          </div>
+        </div>
+
+        <div class="stats">
+          <div>
+            <span>ด่าน</span>
+            <strong id="levelLabel">1 / 20</strong>
+          </div>
+          <div>
+            <span>เวลา</span>
+            <strong id="timerLabel">00:00.0</strong>
+          </div>
+          <div>
+            <span>ดาว</span>
+            <strong id="starLabel">☆☆☆</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="levelsButton" type="button">เลือกด่าน</button>
+          <button id="restartButton" type="button">เริ่มใหม่</button>
+        </div>
+      </section>
+
+      <section class="game-area" aria-label="Survive game board">
+        <canvas id="gameCanvas" width="651" height="651"></canvas>
+      </section>
+
+      <section class="mobile-controls" aria-label="Mobile movement controls">
+        <div class="move-pad" aria-label="Movement pad">
+          <button class="move-button move-up" type="button" data-move="up" aria-label="เดินขึ้น">▲</button>
+          <button class="move-button move-left" type="button" data-move="left" aria-label="เดินซ้าย">◀</button>
+          <div class="move-center" aria-hidden="true"></div>
+          <button class="move-button move-right" type="button" data-move="right" aria-label="เดินขวา">▶</button>
+          <button class="move-button move-down" type="button" data-move="down" aria-label="เดินลง">▼</button>
+        </div>
+      </section>
+
+      <section class="control-panel" aria-label="Controls">
+        <div>
+          <span>ควบคุม</span>
+          <strong>W A S D หรือปุ่มลูกศร</strong>
+        </div>
+        <div id="statusText" class="status-text">หนีไปที่ทางออก ก่อน killer ไล่ทัน</div>
+      </section>
+    </main>
+
+    <div id="levelsDialog" class="levels-overlay" aria-hidden="true">
+      <section class="levels-dialog" aria-labelledby="levelsTitle" role="dialog" aria-modal="true">
+        <div class="dialog-head">
+          <div>
+            <p class="eyebrow">Progress</p>
+            <h2 id="levelsTitle">เลือกด่าน</h2>
+          </div>
+          <button id="closeLevelsButton" class="icon-button" type="button" aria-label="ปิด">
+            ×
+          </button>
+        </div>
+        <div id="levelsGrid" class="levels-grid"></div>
+      </section>
+    </div>
+
+    <div id="resultDialog" class="levels-overlay" aria-hidden="true">
+      <section class="result-dialog" aria-labelledby="resultTitle" role="dialog" aria-modal="true">
+        <p id="resultEyebrow" class="eyebrow">Level Clear</p>
+        <h2 id="resultTitle">รอดแล้ว</h2>
+        <div id="resultStars" class="result-stars">★★★</div>
+        <div class="result-stats">
+          <div>
+            <span>คะแนน</span>
+            <strong id="resultScore">0</strong>
+          </div>
+          <div>
+            <span>เวลา</span>
+            <strong id="resultTime">00:00.0</strong>
+          </div>
+        </div>
+        <p id="resultNextText" class="result-next">กำลังไปด่านถัดไป...</p>
+        <div class="result-actions">
+          <button id="nextLevelButton" type="button">ด่านถัดไป</button>
+          <button id="replayLevelButton" type="button">เล่นซ้ำ</button>
+        </div>
+      </section>
+    </div>
+
+  </body>
+</html>
